@@ -14,7 +14,7 @@ class Parser
      * @param $pathToConfig
      * @throws Exception
      */
-    public function __construct($pathToFile, $pathToConfig)
+    public function __construct($pathToFile, $pathToConfig = false)
     {
         if (!file_exists($pathToFile) && !file_exists($pathToConfig)) {
             throw new Exception ("File not found!");
@@ -36,8 +36,12 @@ class Parser
             return self::xmlToArray();
         }
 
-        if (self::isXML()) {
+        if (self::isYML()) {
+            return self::ymlToArray();
+        }
 
+        if (self::isCSV()) {
+            return self::csvToArray();
         }
 
         return null;
@@ -48,7 +52,23 @@ class Parser
      */
     private function isXML()
     {
-        return $this->getExtension($this->pathToFile) ? true : false;
+        return $this->getExtension($this->pathToFile) == 'xml' ? true : false;
+    }
+
+    /**
+     * @return bool
+     */
+    private function isYML()
+    {
+        return $this->getExtension($this->pathToFile) == 'yml' ? true : false;
+    }
+
+    /**
+     * @return bool
+     */
+    private function isCSV()
+    {
+        return $this->getExtension($this->pathToFile) == 'csv' ? true : false;
     }
 
     /**
@@ -79,7 +99,7 @@ class Parser
                 foreach ($xmlValues as $node) {
                     $attrArray = [];
                     foreach ($book['attributes'] as $key => $attribute) {
-                        $attrArray[] = $node->attributes()->$attribute;
+                        $attrArray[$attribute] = current($node->attributes()->$attribute);
                     }
                     $bookArray['book_' . $i++] = $attrArray;
                 }
@@ -90,14 +110,34 @@ class Parser
         return $this->xml;
     }
 
-
-    private function isYML(){
+    /**
+     * @return string
+     */
+    private function ymlToArray(){
         $yml = yaml_parse_file($this->pathToFile);
-        if (!empty($yml) && is_array($yml)) {
-            return true;
-        } else {
-            return false;
+        $this->yml = $yml;
+
+        return $this->yml;
+    }
+
+    /**
+     * @return array|string
+     */
+    private function csvToArray() {
+        $csv = fopen($this->pathToFile,'r');
+        $array = [];
+        $header = null;
+        while ($row = fgetcsv($csv)) {
+            if ($header === null) {
+                $header = $row;
+                continue;
+            }
+            $array[] = array_combine($header, $row);
         }
+        fclose($csv);
+        $this->csv = $array;
+
+        return $this->csv;
     }
 
     /**
