@@ -1,0 +1,17 @@
+books:
+ book:
+  -
+   _author: Vasya
+   _genre: genre
+   _pages: 250
+   _title: title
+  -
+   _author: Vasya_1
+   _genre: genre_1
+   _pages: 250
+   _title: title_1
+  -
+   _author: Vasya_2
+   _genre: genre_2
+   _pages: 250
+   _title: title_2
